@@ -44,10 +44,17 @@ const CreateUserModal = ({ visible, onClose, onCreate, existingEmails }) => {
         onClose();
     };
 
+    // Card shrinks to fit above the keyboard; content scrolls inside
+    const cardMaxHeight = kbHeight > 0 ? `${100 - (kbHeight / 8)}%` : '85%';
+
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { reset(); onClose(); }}>
             <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => { reset(); onClose(); }}>
-                <View style={[styles.modalCard, { marginBottom: kbHeight }]}>
+                <TouchableOpacity
+                    activeOpacity={1}
+                    style={[styles.modalCard, { maxHeight: cardMaxHeight }]}
+                >
+                    {/* Fixed header — never scrolls */}
                     <View style={styles.modalHeader}>
                         <View style={[styles.modalIconWrap, { backgroundColor: COLORS.primary + '33' }]}>
                             <Feather name="user-plus" size={20} color={COLORS.primaryLight} />
@@ -61,71 +68,75 @@ const CreateUserModal = ({ visible, onClose, onCreate, existingEmails }) => {
                         </TouchableOpacity>
                     </View>
 
-                    {!!error && (
-                        <View style={styles.errorBox}>
-                            <Feather name="alert-circle" size={15} color={COLORS.danger} />
-                            <Text style={styles.errorText}>{error}</Text>
+                    {/* Scrollable form — shrinks and scrolls when keyboard opens */}
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                        bounces={false}
+                    >
+                        {!!error && (
+                            <View style={styles.errorBox}>
+                                <Feather name="alert-circle" size={15} color={COLORS.danger} />
+                                <Text style={styles.errorText}>{error}</Text>
+                            </View>
+                        )}
+
+                        <Text style={styles.fieldLabel}>Email Address</Text>
+                        <View style={styles.inputWrap}>
+                            <Feather name="mail" size={16} color={COLORS.textMuted} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="user@organization.com"
+                                placeholderTextColor={COLORS.textMuted}
+                                value={email}
+                                onChangeText={t => { setEmail(t); setError(''); }}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                            />
                         </View>
-                    )}
 
-                    {/* Email */}
-                    <Text style={styles.fieldLabel}>Email Address</Text>
-                    <View style={styles.inputWrap}>
-                        <Feather name="mail" size={16} color={COLORS.textMuted} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="user@organization.com"
-                            placeholderTextColor={COLORS.textMuted}
-                            value={email}
-                            onChangeText={t => { setEmail(t); setError(''); }}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                        />
-                    </View>
+                        <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Initial Password</Text>
+                        <View style={styles.inputWrap}>
+                            <Feather name="key" size={16} color={COLORS.textMuted} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="At least 6 characters"
+                                placeholderTextColor={COLORS.textMuted}
+                                value={password}
+                                onChangeText={t => { setPassword(t); setError(''); }}
+                                secureTextEntry
+                            />
+                        </View>
 
-                    {/* Password */}
-                    <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Initial Password</Text>
-                    <View style={styles.inputWrap}>
-                        <Feather name="key" size={16} color={COLORS.textMuted} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="At least 6 characters"
-                            placeholderTextColor={COLORS.textMuted}
-                            value={password}
-                            onChangeText={t => { setPassword(t); setError(''); }}
-                            secureTextEntry
-                        />
-                    </View>
+                        <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Assigned Role</Text>
+                        <View style={styles.roleRow}>
+                            <TouchableOpacity
+                                style={[styles.roleChip, role === 'viewer' && styles.roleChipActive]}
+                                onPress={() => setRole('viewer')}
+                            >
+                                <Feather name="eye" size={15} color={role === 'viewer' ? '#fff' : COLORS.textMuted} />
+                                <Text style={[styles.roleChipText, role === 'viewer' && { color: '#fff' }]}>Viewer</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.roleChip, role === 'admin' && styles.roleChipActive]}
+                                onPress={() => setRole('admin')}
+                            >
+                                <Feather name="shield" size={15} color={role === 'admin' ? '#fff' : COLORS.textMuted} />
+                                <Text style={[styles.roleChipText, role === 'admin' && { color: '#fff' }]}>Admin</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                    {/* Role */}
-                    <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Assigned Role</Text>
-                    <View style={styles.roleRow}>
-                        <TouchableOpacity
-                            style={[styles.roleChip, role === 'viewer' && styles.roleChipActive]}
-                            onPress={() => setRole('viewer')}
-                        >
-                            <Feather name="eye" size={15} color={role === 'viewer' ? '#fff' : COLORS.textMuted} />
-                            <Text style={[styles.roleChipText, role === 'viewer' && { color: '#fff' }]}>Viewer</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.roleChip, role === 'admin' && styles.roleChipActive]}
-                            onPress={() => setRole('admin')}
-                        >
-                            <Feather name="shield" size={15} color={role === 'admin' ? '#fff' : COLORS.textMuted} />
-                            <Text style={[styles.roleChipText, role === 'admin' && { color: '#fff' }]}>Admin</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.modalFooter}>
-                        <TouchableOpacity style={styles.btnCancel} onPress={() => { reset(); onClose(); }}>
-                            <Text style={styles.btnCancelText}>Cancel</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.btnPrimary} onPress={handleCreate}>
-                            <Feather name="user-plus" size={15} color="#fff" />
-                            <Text style={styles.btnPrimaryText}>Create User</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                        <View style={[styles.modalFooter, { marginBottom: 6 }]}>
+                            <TouchableOpacity style={styles.btnCancel} onPress={() => { reset(); onClose(); }}>
+                                <Text style={styles.btnCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.btnPrimary} onPress={handleCreate}>
+                                <Feather name="user-plus" size={15} color="#fff" />
+                                <Text style={styles.btnPrimaryText}>Create User</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </TouchableOpacity>
             </TouchableOpacity>
         </Modal>
     );
