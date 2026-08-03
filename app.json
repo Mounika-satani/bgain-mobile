@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.mounimouni.mobilebgainsdk54"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +30,9 @@
       "eas": {
         "projectId": "163c0990-bfa4-4a80-9905-2e7a1cbe40c2"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
