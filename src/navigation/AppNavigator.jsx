@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Feather } from '@expo/vector-icons';
@@ -41,6 +41,23 @@ const tabConfig = {
 };
 
 const CustomTabBar = ({ state, descriptors, navigation }) => {
+    const [keyboardVisible, setKeyboardVisible] = React.useState(false);
+
+    React.useEffect(() => {
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+        const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+        const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
+
+    if (keyboardVisible) return null;
+
     return (
         <View style={styles.tabBar}>
             {state.routes.map((route, index) => {

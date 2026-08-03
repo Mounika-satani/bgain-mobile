@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     View, Text, ScrollView, TouchableOpacity, StyleSheet,
     TextInput, Modal, Alert, FlatList, ActivityIndicator,
+    Keyboard,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { COLORS } from '../theme/colors';
@@ -23,6 +24,13 @@ const CreateUserModal = ({ visible, onClose, onCreate, existingEmails }) => {
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('viewer');
     const [error, setError] = useState('');
+    const [kbHeight, setKbHeight] = useState(0);
+
+    useEffect(() => {
+        const show = Keyboard.addListener('keyboardDidShow', (e) => setKbHeight(e.endCoordinates.height));
+        const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
+        return () => { show.remove(); hide.remove(); };
+    }, []);
 
     const reset = () => { setEmail(''); setPassword(''); setRole('viewer'); setError(''); };
 
@@ -39,7 +47,7 @@ const CreateUserModal = ({ visible, onClose, onCreate, existingEmails }) => {
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { reset(); onClose(); }}>
             <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => { reset(); onClose(); }}>
-                <View style={styles.modalCard}>
+                <View style={[styles.modalCard, { marginBottom: kbHeight }]}>
                     <View style={styles.modalHeader}>
                         <View style={[styles.modalIconWrap, { backgroundColor: COLORS.primary + '33' }]}>
                             <Feather name="user-plus" size={20} color={COLORS.primaryLight} />

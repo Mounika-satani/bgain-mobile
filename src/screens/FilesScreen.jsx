@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, ScrollView, TouchableOpacity, StyleSheet,
     TextInput, Modal, Alert, ActivityIndicator, Image,
-    Linking, FlatList, Platform,
+    Linking, FlatList, Platform, Keyboard,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
@@ -368,15 +368,23 @@ const PreviewModal = ({ visible, file, onClose, onDownload }) => {
 
 const NewFolderModal = ({ visible, onClose, onCreate, pathLabel }) => {
     const [name, setName] = useState('');
+    const [kbHeight, setKbHeight] = useState(0);
+
+    useEffect(() => {
+        const show = Keyboard.addListener('keyboardDidShow', (e) => setKbHeight(e.endCoordinates.height));
+        const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
+        return () => { show.remove(); hide.remove(); };
+    }, []);
+
     const handleCreate = () => {
         if (!name.trim()) return;
         onCreate(name.trim());
         setName('');
     };
     return (
-        <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+        <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
             <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
-                <TouchableOpacity activeOpacity={1} style={styles.modalCard}>
+                <TouchableOpacity activeOpacity={1} style={[styles.modalCard, { marginBottom: kbHeight }]}>
                     <View style={styles.modalHeader}>
                         <View style={[styles.modalIconWrap, { backgroundColor: COLORS.primary + '33' }]}>
                             <Feather name="folder-plus" size={20} color={COLORS.primaryLight} />
@@ -414,12 +422,21 @@ const NewFolderModal = ({ visible, onClose, onCreate, pathLabel }) => {
 
 const RenameModal = ({ visible, item, onClose, onRename }) => {
     const [name, setName] = useState('');
+    const [kbHeight, setKbHeight] = useState(0);
+
     useEffect(() => { if (item) setName(item.name); }, [item]);
+
+    useEffect(() => {
+        const show = Keyboard.addListener('keyboardDidShow', (e) => setKbHeight(e.endCoordinates.height));
+        const hide = Keyboard.addListener('keyboardDidHide', () => setKbHeight(0));
+        return () => { show.remove(); hide.remove(); };
+    }, []);
+
     const isValid = name.trim() && name.trim() !== item?.name;
     return (
-        <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+        <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
             <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
-                <TouchableOpacity activeOpacity={1} style={styles.modalCard}>
+                <TouchableOpacity activeOpacity={1} style={[styles.modalCard, { marginBottom: kbHeight }]}>
                     <View style={styles.modalHeader}>
                         <View style={[styles.modalIconWrap, { backgroundColor: '#f59e0b33' }]}>
                             <Feather name="edit-2" size={18} color="#f59e0b" />

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
-    ScrollView, ActivityIndicator, KeyboardAvoidingView,
+    ScrollView, ActivityIndicator, Keyboard,
     Platform, Animated, Easing,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -36,6 +36,15 @@ const LoginScreen = () => {
     const [loading, setLoading] = useState(false);
     const [showPw, setShowPw] = useState(false);
     const [alertConfig, setAlertConfig] = useState(null);
+    const [kbHeight, setKbHeight] = useState(0);
+
+    useEffect(() => {
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+        const show = Keyboard.addListener(showEvent, (e) => setKbHeight(e.endCoordinates.height));
+        const hide = Keyboard.addListener(hideEvent, () => setKbHeight(0));
+        return () => { show.remove(); hide.remove(); };
+    }, []);
 
     const showAlert = (title, message, type = 'error', onConfirm = null) => {
         setAlertConfig({ visible: true, title, message, type, onConfirm });
@@ -73,12 +82,9 @@ const LoginScreen = () => {
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.root}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
+        <View style={styles.root}>
             <ScrollView
-                contentContainerStyle={styles.scroll}
+                contentContainerStyle={[styles.scroll, { paddingBottom: kbHeight + 32 }]}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
             >
@@ -203,13 +209,13 @@ const LoginScreen = () => {
                     onConfirm={alertConfig.onConfirm}
                 />
             )}
-        </KeyboardAvoidingView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     root: { flex: 1, backgroundColor: COLORS.bg },
-    scroll: { flexGrow: 1, paddingBottom: 32 },
+    scroll: { flexGrow: 1 },
 
     hero: { alignItems: 'center', paddingTop: 60, paddingBottom: 28 },
     logoWrap: {
